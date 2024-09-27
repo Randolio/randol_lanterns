@@ -80,7 +80,7 @@ end)
 RegisterNetEvent('randol_lantern:client:lanternFound', function(index)
     if GetInvokingResource() or not index or not hasPlyLoaded() then return end
     removeLantern(index)
-    if storedPoints[index] then storedPoints[index]:remove() end
+    if storedPoints[index] then storedPoints[index]:remove() storedPoints[index] = nil end
 end)
 
 AddEventHandler('onResourceStop', function(resourceName) 
