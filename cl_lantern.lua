@@ -1,5 +1,6 @@
 local lanterns = {}
 local storedPoints = {}
+local target = 'qb-target'
 
 local function spawnLantern(index, data)
     lib.requestModel(data.model, 15000)
@@ -8,34 +9,66 @@ local function spawnLantern(index, data)
     SetEntityAsMissionEntity(lanterns[index], true, true)
     FreezeEntityPosition(lanterns[index], true)
     SetModelAsNoLongerNeeded(data.model)
-    exports.ox_target:addLocalEntity(lanterns[index], {
-        {
-            icon = 'fa-solid fa-circle',
-            label = 'Grab',
-            onSelect = function()
-                local success, count = lib.callback.await('randol_lantern:server:grabLantern', false, index)
-                if not success then return end
-                while not RequestScriptAudioBank('DLC_TUNER/DLC_Tuner_Collectibles', false, -1) do Wait(0) end
-                lib.playAnim(cache.ped, 'anim@scripted@player@freemode@tun_prep_ig1_grab_low@male@', 'grab_low', 8.0, -8.0, 1500, 01, 0.0, false, false, false)
-                PlaySoundFrontend(-1, 'Audio_Player_Shard_Final', 'Tuner_Collectables_General_Sounds', false)
-                ReleaseNamedScriptAudioBank('DLC_TUNER/DLC_Tuner_Collectibles')
-                lib.notify({
-                    title = "Collected Jack O'Lantern",
-                    description = ("You collected a Jack O'Lantern, %s remaining!"):format(count),
-                    showDuration = true, duration = 5000, position = 'top', 
-                    style = { width = 'fit-content', height = 'fit-content' }, 
-                    icon = 'ghost', iconColor = '#ffffff' 
-                })
-            end,
+    if target == 'qb-target' then
+        exports['qb-target']:AddTargetEntity(lanterns[index], {
+            options = {
+                {
+                    icon = 'fa-solid fa-circle',
+                    label = 'Grab',
+                    action = function()
+                        local success, count = lib.callback.await('randol_lantern:server:grabLantern', false, index)
+                        if not success then return end
+                        while not RequestScriptAudioBank('DLC_TUNER/DLC_Tuner_Collectibles', false, -1) do Wait(0) end
+                        lib.playAnim(cache.ped, 'anim@scripted@player@freemode@tun_prep_ig1_grab_low@male@', 'grab_low', 8.0, -8.0, 1500, 01, 0.0, false, false, false)
+                        PlaySoundFrontend(-1, 'Audio_Player_Shard_Final', 'Tuner_Collectables_General_Sounds', false)
+                        ReleaseNamedScriptAudioBank('DLC_TUNER/DLC_Tuner_Collectibles')
+                        lib.notify({
+                            title = "Collected Jack O'Lantern",
+                            description = ("You collected a Jack O'Lantern, %s remaining!"):format(count),
+                            showDuration = true, duration = 5000, position = 'top', 
+                            style = { width = 'fit-content', height = 'fit-content' }, 
+                            icon = 'ghost', iconColor = '#ffffff' 
+                        })
+                    end,
+                }
+            },
             distance = 1.5,
-        },
-    })
+        })
+    elseif target == 'ox_target' then
+        exports.ox_target:addLocalEntity(lanterns[index], {
+            {
+                icon = 'fa-solid fa-circle',
+                label = 'Grab',
+                onSelect = function()
+                    local success, count = lib.callback.await('randol_lantern:server:grabLantern', false, index)
+                    if not success then return end
+                    while not RequestScriptAudioBank('DLC_TUNER/DLC_Tuner_Collectibles', false, -1) do Wait(0) end
+                    lib.playAnim(cache.ped, 'anim@scripted@player@freemode@tun_prep_ig1_grab_low@male@', 'grab_low', 8.0, -8.0, 1500, 01, 0.0, false, false, false)
+                    PlaySoundFrontend(-1, 'Audio_Player_Shard_Final', 'Tuner_Collectables_General_Sounds', false)
+                    ReleaseNamedScriptAudioBank('DLC_TUNER/DLC_Tuner_Collectibles')
+                    lib.notify({
+                        title = "Collected Jack O'Lantern",
+                        description = ("You collected a Jack O'Lantern, %s remaining!"):format(count),
+                        showDuration = true, duration = 5000, position = 'top', 
+                        style = { width = 'fit-content', height = 'fit-content' }, 
+                        icon = 'ghost', iconColor = '#ffffff' 
+                    })
+                end,
+                distance = 1.5,
+            },
+        })
+    end
 end
 
 local function removeLantern(index)
     if DoesEntityExist(lanterns[index]) then
-        exports.ox_target:removeLocalEntity(lanterns[index], 'Grab')
-        DeleteEntity(lanterns[index])
+        if target == 'qb-target' then
+            exports['qb-target']:RemoveTargetEntity(lanterns[index], 'Grab')
+            DeleteEntity(lanterns[index])
+        elseif target == 'ox_target' then
+            exports.ox_target:removeLocalEntity(lanterns[index], 'Grab')
+            DeleteEntity(lanterns[index])
+        end
     end
     lanterns[index] = nil
 end
